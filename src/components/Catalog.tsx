@@ -111,9 +111,7 @@ export default function Catalog() {
           }}
         >
           <div>
-            <div style={{ fontSize: 22, fontWeight: 900 }}>
-              {catalogTitle}
-            </div>
+            <div style={{ fontSize: 22, fontWeight: 900 }}>{catalogTitle}</div>
             <div style={{ marginTop: 6 }}>
               <span style={{ fontSize: 14, fontWeight: 900 }}>문의 </span>
               <span
@@ -219,7 +217,11 @@ export default function Catalog() {
                 <Link
                   key={it.id}
                   href={`/items/${it.id}`}
-                  style={{ textDecoration: "none", color: "inherit" }}
+                  style={{
+                    textDecoration: "none",
+                    color: "inherit",
+                    display: "block", // ✅ 클릭 영역 100% 보장 (UI 변화 없음)
+                  }}
                 >
                   <div
                     style={{
