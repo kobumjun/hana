@@ -214,96 +214,89 @@ export default function Catalog() {
               const showCategory = normalizeCategory(it.category);
 
               return (
-                <Link
-                  key={it.id}
-                  href={`/items/${it.id}`}
-                  style={{
-                    textDecoration: "none",
-                    color: "inherit",
-                    display: "block", // ✅ 클릭 영역 100% 보장 (UI 변화 없음)
-                  }}
-                >
-                  <div
-                    style={{
-                      background: "white",
-                      borderRadius: 12,
-                      overflow: "hidden",
-                    }}
-                  >
-                    {it.image_url ? (
-                      <img
-                        src={it.image_url}
-                        alt={it.name}
-                        style={{
-                          width: "100%",
-                          aspectRatio: "1 / 1",
-                          objectFit: "cover",
-                          display: "block",
-                        }}
-                      />
-                    ) : (
-                      <div
-                        style={{
-                          width: "100%",
-                          aspectRatio: "1 / 1",
-                          background: "#f2f4f7",
-                        }}
-                      />
-                    )}
+                <Link key={it.id} href={`/items/${it.id}`} legacyBehavior>
+  <a style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+    <div
+      style={{
+        background: "white",
+        borderRadius: 12,
+        overflow: "hidden",
+      }}
+    >
+      {it.image_url ? (
+        <img
+          src={it.image_url}
+          alt={it.name}
+          style={{
+            width: "100%",
+            aspectRatio: "1 / 1",
+            objectFit: "cover",
+            display: "block",
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            width: "100%",
+            aspectRatio: "1 / 1",
+            background: "#f2f4f7",
+          }}
+        />
+      )}
 
-                    <div style={{ padding: 10 }}>
-                      <div
-                        style={{
-                          fontSize: 14,
-                          fontWeight: 700,
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                        }}
-                      >
-                        {it.name}
-                      </div>
+      <div style={{ padding: 10 }}>
+        <div
+          style={{
+            fontSize: 14,
+            fontWeight: 700,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {it.name}
+        </div>
 
-                      <div
-                        style={{
-                          marginTop: 4,
-                          fontSize: 16,
-                          fontWeight: 900,
-                        }}
-                      >
-                        {formatPrice(it.price || 0)}원
-                      </div>
+        <div
+          style={{
+            marginTop: 4,
+            fontSize: 16,
+            fontWeight: 900,
+          }}
+        >
+          {formatPrice(it.price || 0)}원
+        </div>
 
-                      <div
-                        style={{
-                          marginTop: 4,
-                          fontSize: 11,
-                          color: "#888",
-                        }}
-                      >
-                        {showCategory}
-                      </div>
+        <div
+          style={{
+            marginTop: 4,
+            fontSize: 11,
+            color: "#888",
+          }}
+        >
+          {showCategory}
+        </div>
 
-                      {/* ✅ 메인에서도 소개글 표시 */}
-                      {it.description && (
-                        <div
-                          style={{
-                            marginTop: 6,
-                            fontSize: 12,
-                            color: "#666",
-                            lineHeight: 1.35,
-                            overflow: "hidden",
-                            display: "-webkit-box",
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: "vertical",
-                          }}
-                        >
-                          {it.description}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </Link>
+        {it.description && (
+          <div
+            style={{
+              marginTop: 6,
+              fontSize: 12,
+              color: "#666",
+              lineHeight: 1.35,
+              overflow: "hidden",
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+            }}
+          >
+            {it.description}
+          </div>
+        )}
+      </div>
+    </div>
+  </a>
+</Link>
               );
             })}
           </div>
