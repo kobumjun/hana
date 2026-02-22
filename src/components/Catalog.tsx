@@ -48,14 +48,6 @@ export default function Catalog() {
       if (!res.ok) throw new Error("items fetch failed");
       const data = await res.json();
       const list: Item[] = Array.isArray(data) ? data : data.items ?? [];
-
-      list
-        .filter((it) => it.id)
-        .sort((a, b) =>
-          (a.created_at || "").localeCompare(b.created_at || "")
-        )
-        .reverse();
-
       setItems(list);
     } catch (e) {
       console.error(e);
@@ -185,8 +177,8 @@ export default function Catalog() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)", // 🔥 4분할 강제
-              gap: 12,
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gap: 14,
             }}
           >
             {filtered.map((it) => {
@@ -201,9 +193,8 @@ export default function Catalog() {
                   <div
                     style={{
                       background: "white",
-                      borderRadius: 14,
+                      borderRadius: 12,
                       overflow: "hidden",
-                      cursor: "pointer",
                     }}
                   >
                     {it.image_url ? (
@@ -212,7 +203,7 @@ export default function Catalog() {
                         alt={it.name}
                         style={{
                           width: "100%",
-                          height: 160,
+                          aspectRatio: "1 / 1",
                           objectFit: "cover",
                         }}
                       />
@@ -220,56 +211,44 @@ export default function Catalog() {
                       <div
                         style={{
                           width: "100%",
-                          height: 160,
+                          aspectRatio: "1 / 1",
                           background: "#f2f4f7",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
                         }}
-                      >
-                        이미지 없음
-                      </div>
+                      />
                     )}
 
-                    <div style={{ padding: 12 }}>
+                    <div style={{ padding: 10 }}>
                       <div
                         style={{
-                          display: "flex",
-                          justifyContent: "space-between",
+                          fontSize: 14,
+                          fontWeight: 700,
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
                         }}
                       >
-                        <div style={{ fontWeight: 900 }}>
-                          {it.name}
-                        </div>
-                        <div
-                          style={{
-                            fontSize: 12,
-                            fontWeight: 900,
-                            padding: "4px 8px",
-                            borderRadius: 999,
-                            background: "#eef2ff",
-                          }}
-                        >
-                          {showCategory}
-                        </div>
+                        {it.name}
                       </div>
 
-                      <div style={{ marginTop: 6, fontWeight: 900 }}>
+                      <div
+                        style={{
+                          marginTop: 4,
+                          fontSize: 16,
+                          fontWeight: 900,
+                        }}
+                      >
                         {formatPrice(it.price || 0)}원
                       </div>
 
-                      {it.description && (
-                        <div
-                          style={{
-                            marginTop: 8,
-                            fontSize: 13,
-                            color: "#555",
-                            lineHeight: 1.4,
-                          }}
-                        >
-                          {it.description}
-                        </div>
-                      )}
+                      <div
+                        style={{
+                          marginTop: 4,
+                          fontSize: 11,
+                          color: "#888",
+                        }}
+                      >
+                        {showCategory}
+                      </div>
                     </div>
                   </div>
                 </Link>
