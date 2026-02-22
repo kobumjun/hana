@@ -177,7 +177,7 @@ export default function Catalog() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(4, 1fr)",
+              gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
               gap: 14,
             }}
           >
@@ -205,6 +205,7 @@ export default function Catalog() {
                           width: "100%",
                           aspectRatio: "1 / 1",
                           objectFit: "cover",
+                          display: "block",
                         }}
                       />
                     ) : (
