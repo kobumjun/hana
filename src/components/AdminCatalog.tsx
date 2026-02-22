@@ -12,8 +12,10 @@ type Item = {
   created_at?: string;
 };
 
-const CONTACT_PHONE = process.env.NEXT_PUBLIC_CONTACT_PHONE || "010-7771-7711";
-const BRAND_NAME = process.env.NEXT_PUBLIC_BRAND_NAME || "하나유통 샘플 카탈로그";
+const DEFAULT_CONTACT_PHONE =
+  process.env.NEXT_PUBLIC_CONTACT_PHONE || "010-7771-7711";
+const DEFAULT_BRAND_NAME =
+  process.env.NEXT_PUBLIC_BRAND_NAME || "하나유통 샘플 카탈로그";
 
 const CATEGORIES = ["전체", "수산물", "육류", "과일", "기타"] as const;
 type CategoryTab = (typeof CATEGORIES)[number];
@@ -27,6 +29,13 @@ function formatPrice(v: number) {
 }
 
 export default function AdminCatalog() {
+  // ✅ 배너(카탈로그 제목/전화번호) 설정
+  const [brandName, setBrandName] = useState(DEFAULT_BRAND_NAME);
+  const [contactPhone, setContactPhone] = useState(DEFAULT_CONTACT_PHONE);
+  const [settingsLoading, setSettingsLoading] = useState(true);
+  const [settingsSaving, setSettingsSaving] = useState(false);
+
+  // ✅ 상품 관리(기존 기능 유지)
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -46,6 +55,58 @@ export default function AdminCatalog() {
     return items.filter((it) => it.category === activeTab);
   }, [items, activeTab]);
 
+  // =========================
+  // ✅ Settings API
+  // =========================
+  async function fetchSettings() {
+    setSettingsLoading(true);
+    try {
+      const res = await fetch("/api/settings", { cache: "no-store" });
+      const data = await res.json().catch(() => ({}));
+
+      setBrandName(data?.catalog_title ?? DEFAULT_BRAND_NAME);
+      setContactPhone(data?.contact_phone ?? DEFAULT_CONTACT_PHONE);
+    } catch (e) {
+      console.error(e);
+      setBrandName(DEFAULT_BRAND_NAME);
+      setContactPhone(DEFAULT_CONTACT_PHONE);
+    } finally {
+      setSettingsLoading(false);
+    }
+  }
+
+  async function saveSettings() {
+    setSettingsSaving(true);
+    try {
+      const payload = {
+        catalog_title: brandName?.trim() || DEFAULT_BRAND_NAME,
+        contact_phone: contactPhone?.trim() || DEFAULT_CONTACT_PHONE,
+      };
+
+      const res = await fetch("/api/settings/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const t = await res.text().catch(() => "");
+        throw new Error("settings update failed: " + (t || res.statusText));
+      }
+
+      alert("배너 저장 완료");
+      await fetchSettings(); // 저장 후 값 재반영
+    } catch (e: any) {
+      console.error(e);
+      alert(e?.message || "배너 저장 중 오류");
+    } finally {
+      setSettingsSaving(false);
+    }
+  }
+
+  // =========================
+  // ✅ Items API (기존)
+  // =========================
   async function fetchItems() {
     setLoading(true);
     try {
@@ -53,7 +114,11 @@ export default function AdminCatalog() {
       if (!res.ok) throw new Error("items fetch failed");
       const data = await res.json();
       const list: Item[] = Array.isArray(data) ? data : data.items ?? [];
-      list.sort((a, b) => (a.created_at || "").localeCompare(b.created_at || "")).reverse();
+      list
+        .sort((a, b) =>
+          (a.created_at || "").localeCompare(b.created_at || "")
+        )
+        .reverse();
       setItems(list);
     } catch (e) {
       console.error(e);
@@ -64,6 +129,7 @@ export default function AdminCatalog() {
   }
 
   useEffect(() => {
+    fetchSettings();
     fetchItems();
   }, []);
 
@@ -175,35 +241,132 @@ export default function AdminCatalog() {
     <div style={{ minHeight: "100vh", background: "#f3f5f8" }}>
       <header
         style={{
-          background: "linear-gradient(90deg, #0b1530 0%, #0a1d3a 60%, #0b1530 100%)",
+          background:
+            "linear-gradient(90deg, #0b1530 0%, #0a1d3a 60%, #0b1530 100%)",
           color: "white",
           padding: "14px 14px",
           borderBottom: "1px solid rgba(255,255,255,0.08)",
         }}
       >
-        <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ fontSize: 18, fontWeight: 900 }}>{BRAND_NAME} (관리자)</div>
-          <button
-            onClick={fetchItems}
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 12,
-              border: "0",
-              background: "rgba(255,255,255,0.92)",
-              color: "#0b1530",
-              fontSize: 16,
-              fontWeight: 900,
-              cursor: "pointer",
-            }}
-            title="새로고침"
-          >
-            ⟳
-          </button>
+        <div
+          style={{
+            maxWidth: 1100,
+            margin: "0 auto",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 10,
+          }}
+        >
+          <div style={{ display: "grid", gap: 4 }}>
+            <div style={{ fontSize: 18, fontWeight: 900 }}>
+              {brandName} (관리자)
+            </div>
+            <div style={{ fontSize: 13, opacity: 0.9 }}>
+              문의: {contactPhone}
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              onClick={async () => {
+                await fetchSettings();
+                await fetchItems();
+              }}
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 12,
+                border: "0",
+                background: "rgba(255,255,255,0.92)",
+                color: "#0b1530",
+                fontSize: 16,
+                fontWeight: 900,
+                cursor: "pointer",
+              }}
+              title="새로고침"
+            >
+              ⟳
+            </button>
+          </div>
         </div>
       </header>
 
       <main style={{ maxWidth: 1100, margin: "0 auto", padding: "14px 12px 40px" }}>
+        {/* ✅ 배너 설정 (추가된 기능) */}
+        <section
+          style={{
+            background: "white",
+            border: "1px solid #e3e8f2",
+            borderRadius: 14,
+            padding: 16,
+            boxShadow: "0 6px 18px rgba(15, 23, 42, 0.06)",
+            marginBottom: 14,
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
+            <div style={{ fontSize: 18, fontWeight: 900 }}>상단 배너 설정</div>
+            <div style={{ fontSize: 13, color: "#667085" }}>
+              {settingsLoading ? "불러오는 중..." : "관리자에서 바로 수정 가능"}
+            </div>
+          </div>
+
+          <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: 12 }}>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 900, marginBottom: 8 }}>카탈로그 제목</div>
+              <input
+                value={brandName}
+                onChange={(e) => setBrandName(e.target.value)}
+                placeholder="예: 하나유통 샘플 카탈로그"
+                style={{
+                  width: "100%",
+                  padding: "12px 12px",
+                  borderRadius: 10,
+                  border: "1px solid #d7deea",
+                  fontSize: 16,
+                  outline: "none",
+                }}
+              />
+            </div>
+
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 900, marginBottom: 8 }}>문의 전화번호</div>
+              <input
+                value={contactPhone}
+                onChange={(e) => setContactPhone(e.target.value)}
+                placeholder="예: 010-7771-7711"
+                style={{
+                  width: "100%",
+                  padding: "12px 12px",
+                  borderRadius: 10,
+                  border: "1px solid #d7deea",
+                  fontSize: 16,
+                  outline: "none",
+                }}
+              />
+            </div>
+          </div>
+
+          <button
+            disabled={settingsSaving}
+            onClick={saveSettings}
+            style={{
+              marginTop: 12,
+              width: "100%",
+              background: settingsSaving ? "#9aa4b2" : "#0b1530",
+              color: "white",
+              border: "0",
+              padding: "12px 14px",
+              borderRadius: 12,
+              fontSize: 16,
+              fontWeight: 900,
+              cursor: settingsSaving ? "not-allowed" : "pointer",
+            }}
+          >
+            {settingsSaving ? "저장 중..." : "배너 저장"}
+          </button>
+        </section>
+
         {/* 카테고리 탭 */}
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "8px 0 12px" }}>
           {CATEGORIES.map((c) => {
@@ -344,7 +507,12 @@ export default function AdminCatalog() {
 
             <div style={{ marginTop: 12 }}>
               <div style={{ fontSize: 14, fontWeight: 900, marginBottom: 8 }}>샘플 사진(선택)</div>
-              <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} style={{ fontSize: 15 }} />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                style={{ fontSize: 15 }}
+              />
               <div style={{ marginTop: 6, fontSize: 13, color: "#667085" }}>
                 * 사진은 선택 후 저장하면 업로드됩니다.
               </div>
@@ -404,9 +572,24 @@ export default function AdminCatalog() {
                   >
                     {it.image_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={it.image_url} alt={it.name} style={{ width: "100%", height: 180, objectFit: "cover", background: "#f2f4f7" }} />
+                      <img
+                        src={it.image_url}
+                        alt={it.name}
+                        style={{ width: "100%", height: 180, objectFit: "cover", background: "#f2f4f7" }}
+                      />
                     ) : (
-                      <div style={{ width: "100%", height: 180, background: "#f2f4f7", display: "flex", alignItems: "center", justifyContent: "center", color: "#98a2b3", fontWeight: 800 }}>
+                      <div
+                        style={{
+                          width: "100%",
+                          height: 180,
+                          background: "#f2f4f7",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#98a2b3",
+                          fontWeight: 800,
+                        }}
+                      >
                         이미지 없음
                       </div>
                     )}
@@ -414,7 +597,18 @@ export default function AdminCatalog() {
                     <div style={{ padding: 12 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
                         <div style={{ fontSize: 18, fontWeight: 900, lineHeight: 1.2 }}>{it.name}</div>
-                        <div style={{ fontSize: 13, fontWeight: 900, padding: "6px 10px", borderRadius: 999, background: "#eef2ff", color: "#3730a3", height: "fit-content", whiteSpace: "nowrap" }}>
+                        <div
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 900,
+                            padding: "6px 10px",
+                            borderRadius: 999,
+                            background: "#eef2ff",
+                            color: "#3730a3",
+                            height: "fit-content",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
                           {it.category}
                         </div>
                       </div>

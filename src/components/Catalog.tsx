@@ -16,6 +16,9 @@ type Item = {
 const CONTACT_PHONE =
   process.env.NEXT_PUBLIC_CONTACT_PHONE || "010-7771-7711";
 
+const BRAND_NAME =
+  process.env.NEXT_PUBLIC_BRAND_NAME || "하나유통 샘플 카탈로그";
+
 const CATEGORIES = ["전체", "수산물", "육류", "과일", "기타"] as const;
 type CategoryTab = (typeof CATEGORIES)[number];
 
@@ -38,6 +41,23 @@ export default function Catalog() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<CategoryTab>("전체");
 
+  // ✅ 카탈로그 제목/전번만 settings에서 가져오기
+  const [catalogTitle, setCatalogTitle] = useState(BRAND_NAME);
+  const [contactPhone, setContactPhone] = useState(CONTACT_PHONE);
+
+  async function fetchSettings() {
+    try {
+      const res = await fetch("/api/settings", { cache: "no-store" });
+      const data = await res.json().catch(() => ({}));
+      setCatalogTitle(data?.catalog_title ?? BRAND_NAME);
+      setContactPhone(data?.contact_phone ?? CONTACT_PHONE);
+    } catch (e) {
+      console.error(e);
+      setCatalogTitle(BRAND_NAME);
+      setContactPhone(CONTACT_PHONE);
+    }
+  }
+
   async function fetchItems() {
     setLoading(true);
     try {
@@ -55,6 +75,7 @@ export default function Catalog() {
   }
 
   useEffect(() => {
+    fetchSettings();
     fetchItems();
   }, []);
 
@@ -66,8 +87,8 @@ export default function Catalog() {
     return items.filter((it) => normalizeCategory(it.category) === activeTab);
   }, [items, activeTab]);
 
-  const telHref = `tel:${CONTACT_PHONE.replaceAll("-", "")}`;
-  const smsHref = `sms:${CONTACT_PHONE.replaceAll("-", "")}`;
+  const telHref = `tel:${contactPhone.replaceAll("-", "")}`;
+  const smsHref = `sms:${contactPhone.replaceAll("-", "")}`;
 
   return (
     <div style={{ minHeight: "100vh", background: "#f3f5f8" }}>
@@ -91,7 +112,7 @@ export default function Catalog() {
         >
           <div>
             <div style={{ fontSize: 22, fontWeight: 900 }}>
-              하나유통 샘플 카탈로그
+              {catalogTitle}
             </div>
             <div style={{ marginTop: 6 }}>
               <span style={{ fontSize: 14, fontWeight: 900 }}>문의 </span>
@@ -102,7 +123,7 @@ export default function Catalog() {
                   color: "#fbbf24",
                 }}
               >
-                {CONTACT_PHONE}
+                {contactPhone}
               </span>
             </div>
           </div>
