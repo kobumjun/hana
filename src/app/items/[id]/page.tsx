@@ -1,18 +1,25 @@
 import { notFound } from "next/navigation";
 
 type Props = {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 };
 
 export default async function ItemDetailPage({ params }: Props) {
-
-  const { id } = await params;   // ← 이게 핵심
+  const { id } = await params;
 
   if (!id) return notFound();
 
-  const res = await fetch(`http://localhost:3000/api/items/${id}`, {
+  // 🔥 환경별 baseUrl 처리
+  const baseUrl =
+    process.env.NODE_ENV === "production"
+      ? "https://hana-taupe.vercel.app"
+      : "http://localhost:3000";
+
+  const res = await fetch(`${baseUrl}/api/items/${id}`, {
     cache: "no-store",
   });
+
+  if (!res.ok) return notFound();
 
   const data = await res.json();
   const item = data.item;
@@ -20,18 +27,26 @@ export default async function ItemDetailPage({ params }: Props) {
   if (!item) return notFound();
 
   return (
-    <div style={{ padding: 40 }}>
-      <h1>{item.name}</h1>
+    <div style={{ maxWidth: 900, margin: "40px auto", padding: 20 }}>
+      <h1 style={{ fontSize: 28, fontWeight: 900 }}>{item.name}</h1>
 
       {item.image_url && (
-        <img src={item.image_url} style={{ width: 300 }} />
+        <img
+          src={item.image_url}
+          alt={item.name}
+          style={{ width: "100%", marginTop: 20, borderRadius: 12 }}
+        />
       )}
 
-      <div style={{ fontSize: 22, fontWeight: 700 }}>
+      <div style={{ marginTop: 20, fontSize: 22, fontWeight: 900 }}>
         {item.price}원
       </div>
 
-      <div>{item.description}</div>
+      {item.description && (
+        <div style={{ marginTop: 16, fontSize: 16, lineHeight: 1.6 }}>
+          {item.description}
+        </div>
+      )}
     </div>
   );
 }

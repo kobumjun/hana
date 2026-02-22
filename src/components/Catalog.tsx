@@ -50,7 +50,7 @@ export default function Catalog() {
       const list: Item[] = Array.isArray(data) ? data : data.items ?? [];
 
       list
-        .filter((it) => it.id) // ✅ id 없는 상품 제거
+        .filter((it) => it.id)
         .sort((a, b) =>
           (a.created_at || "").localeCompare(b.created_at || "")
         )
@@ -185,8 +185,7 @@ export default function Catalog() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns:
-                "repeat(auto-fill, minmax(240px, 1fr))",
+              gridTemplateColumns: "repeat(4, 1fr)", // 🔥 4분할 강제
               gap: 12,
             }}
           >
@@ -259,7 +258,6 @@ export default function Catalog() {
                         {formatPrice(it.price || 0)}원
                       </div>
 
-                      {/* ✅ 메인에서도 소개글 표시 */}
                       {it.description && (
                         <div
                           style={{
