@@ -27,10 +27,7 @@ function formatPrice(v: number) {
   }
 }
 
-function normalizeCategory(raw?: string | null): Exclude<
-  CategoryTab,
-  "전체"
-> {
+function normalizeCategory(raw?: string | null): Exclude<CategoryTab, "전체"> {
   const c = (raw ?? "").trim();
   if (c === "수산물" || c === "육류" || c === "과일") return c;
   return "기타";
@@ -64,13 +61,9 @@ export default function Catalog() {
   const filtered = useMemo(() => {
     if (activeTab === "전체") return items;
     if (activeTab === "기타") {
-      return items.filter(
-        (it) => normalizeCategory(it.category) === "기타"
-      );
+      return items.filter((it) => normalizeCategory(it.category) === "기타");
     }
-    return items.filter(
-      (it) => normalizeCategory(it.category) === activeTab
-    );
+    return items.filter((it) => normalizeCategory(it.category) === activeTab);
   }, [items, activeTab]);
 
   const telHref = `tel:${CONTACT_PHONE.replaceAll("-", "")}`;
@@ -120,10 +113,15 @@ export default function Catalog() {
               style={{
                 background: "#2e7d32",
                 color: "white",
-                padding: "10px 12px",
-                borderRadius: 10,
+                width: 56,
+                height: 56,
+                borderRadius: 12,
                 fontWeight: 900,
                 textDecoration: "none",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                lineHeight: 1,
               }}
             >
               전화
@@ -133,10 +131,15 @@ export default function Catalog() {
               style={{
                 background: "#1e40af",
                 color: "white",
-                padding: "10px 12px",
-                borderRadius: 10,
+                width: 56,
+                height: 56,
+                borderRadius: 12,
                 fontWeight: 900,
                 textDecoration: "none",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                lineHeight: 1,
               }}
             >
               문자
@@ -146,7 +149,14 @@ export default function Catalog() {
       </header>
 
       <main style={{ maxWidth: 1100, margin: "0 auto", padding: 16 }}>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 10,
+            flexWrap: "wrap",
+            marginBottom: 16,
+          }}
+        >
           {CATEGORIES.map((c) => {
             const active = activeTab === c;
             return (
@@ -250,6 +260,24 @@ export default function Catalog() {
                       >
                         {showCategory}
                       </div>
+
+                      {/* ✅ 메인에서도 소개글 표시 */}
+                      {it.description && (
+                        <div
+                          style={{
+                            marginTop: 6,
+                            fontSize: 12,
+                            color: "#666",
+                            lineHeight: 1.35,
+                            overflow: "hidden",
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                          }}
+                        >
+                          {it.description}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </Link>
